@@ -217,6 +217,7 @@ struct _VncConnectionPrivate
     guint8 zrle_pi;
     int zrle_pi_bits;
 
+    int ledstate;
     gboolean has_ext_key_event;
 
     struct {
@@ -248,6 +249,7 @@ enum {
     VNC_FRAMEBUFFER_UPDATE,
     VNC_DESKTOP_RESIZE,
     VNC_PIXEL_FORMAT_CHANGED,
+    VNC_LED_STATE,
 
     VNC_AUTH_FAILURE,
     VNC_AUTH_UNSUPPORTED,
@@ -449,6 +451,7 @@ struct signal_data
         VncCursor *cursor;
         gboolean absPointer;
         const char *text;
+        int ledstate;
         struct {
             int x;
             int y;
@@ -523,6 +526,13 @@ static gboolean do_vnc_connection_emit_main_context(gpointer opaque)
                       signals[data->signum],
                       0,
                       data->params.pixelFormat);
+        break;
+
+    case VNC_LED_STATE:
+        g_signal_emit(G_OBJECT(data->conn),
+                      signals[data->signum],
+                      0,
+                      data->params.ledstate);
         break;
 
     case VNC_AUTH_FAILURE:
@@ -1413,6 +1423,19 @@ static void vnc_connection_read_pixel_format(VncConnection *conn, VncPixelFormat
               fmt->bits_per_pixel, fmt->depth, fmt->byte_order, fmt->true_color_flag,
               fmt->red_max, fmt->green_max, fmt->blue_max,
               fmt->red_shift, fmt->green_shift, fmt->blue_shift);
+}
+
+static void vnc_connection_ledstate_change(VncConnection *conn)
+{
+    VncConnectionPrivate *priv = conn->priv;
+    struct signal_data sigdata;
+
+    priv->ledstate = vnc_connection_read_u8(conn);
+
+    VNC_DEBUG("LED state: %d\n", priv->ledstate);
+
+    sigdata.params.ledstate = priv->ledstate;
+    vnc_connection_emit_main_context(conn, VNC_LED_STATE, &sigdata);
 }
 
 /* initialize function */
@@ -2882,6 +2905,10 @@ static gboolean vnc_connection_framebuffer_update(VncConnection *conn, gint32 et
         break;
     case VNC_CONNECTION_ENCODING_POINTER_CHANGE:
         vnc_connection_pointer_type_change(conn, x);
+        vnc_connection_resend_framebuffer_update_request(conn);
+        break;
+    case VNC_CONNECTION_ENCODING_LED_STATE:
+        vnc_connection_ledstate_change(conn);
         vnc_connection_resend_framebuffer_update_request(conn);
         break;
     case VNC_CONNECTION_ENCODING_WMVi:
@@ -4609,6 +4636,16 @@ static void vnc_connection_class_init(VncConnectionClass *klass)
                       1,
                       G_TYPE_POINTER);
 
+    signals[VNC_LED_STATE] =
+        g_signal_new ("vnc-led-state",
+                      G_OBJECT_CLASS_TYPE (object_class),
+                      G_SIGNAL_RUN_FIRST,
+                      G_STRUCT_OFFSET (VncConnectionClass, vnc_led_state),
+                      NULL, NULL,
+                      g_cclosure_marshal_VOID__INT,
+                      G_TYPE_NONE,
+                      0);
+
     signals[VNC_AUTH_FAILURE] =
         g_signal_new ("vnc-auth-failure",
                       G_OBJECT_CLASS_TYPE (object_class),
@@ -5442,6 +5479,13 @@ gboolean vnc_connection_get_abs_pointer(VncConnection *conn)
     VncConnectionPrivate *priv = conn->priv;
 
     return priv->absPointer;
+}
+
+int vnc_connection_get_ledstate(VncConnection *conn)
+{
+    VncConnectionPrivate *priv = conn->priv;
+
+    return priv->ledstate;
 }
 
 /*
