@@ -1,0 +1,29 @@
+# Telugu translations for gtk-vnc.
+# Copyright (C) 2012  Swecha Telugu Localisation Team <localization@swecha.net>
+# This file is distributed under the same license as the gtk-vnc package.
+# Sasi Bhushan  Boddepalli <sasi@swecha.net>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gtk-vnc master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gtk-"
+"vnc&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2012-03-13 18:52+0000\n"
+"PO-Revision-Date: 2012-03-16 16:00+0530\n"
+"Last-Translator: Sasi Bhushan  Boddepalli <sasi@swecha.net>\n"
+"Language-Team: Telugu <indlinux-telugu@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/vncdisplay.c:165
+msgid "Enables debug output"
+msgstr "డీబగ్ అవుట్పుట్ ను ప్రారంభించు"
+
+#: ../src/vncdisplay.c:2310
+msgid "GTK-VNC Options:"
+msgstr "GTK-VNC అభీష్టాలు:"
+
+#: ../src/vncdisplay.c:2310
+msgid "Show GTK-VNC Options"
+msgstr "GTK-VNC అభీష్టాలు చూపుము"
